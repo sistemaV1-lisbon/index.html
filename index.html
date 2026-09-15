@@ -3,132 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Som Notificação 99 - Simulador</title>
+    <title>Som Notificação 99 - Funcional</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif; }
         body {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #fcc500, #ff9500);
-            padding: 20px;
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            background:linear-gradient(135deg,#fcc500,#ff9500);
+            padding:20px;
         }
-        h1 {
-            color: #fff;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-            margin-bottom: 40px;
-            font-size: 2rem;
-            text-align: center;
-        }
+        h1 { color:#fff; margin-bottom:40px; text-align:center; font-size:1.8rem; }
         .botao {
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            border: none;
-            font-size: 1.5rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-            transition: all 0.2s ease;
-            color: #fff;
+            width:200px; height:200px;
+            border-radius:50%; border:none;
+            font-size:1.4rem; font-weight:bold;
+            cursor:pointer; color:white;
+            box-shadow:0 10px 30px rgba(0,0,0,0.3);
+            transition:transform 0.2s;
         }
-        .botao.desligado { background: #e74c3c; }
-        .botao.ligado { background: #27ae60; }
-        .botao:active { transform: scale(0.95); }
-        .status {
-            margin-top: 30px;
-            font-size: 1.3rem;
-            color: #fff;
-            font-weight: bold;
-        }
-        .info {
-            margin-top: 20px;
-            color: #fff;
-            text-align: center;
-            max-width: 300px;
-            font-size: 0.95rem;
-            opacity: 0.9;
-        }
+        .desligado { background:#e53935; }
+        .ligado { background:#2ecc71; }
+        .botao:active { transform:scale(0.95); }
+        .status { margin-top:30px; color:white; font-size:1.3rem; font-weight:bold; }
     </style>
 </head>
 <body>
-    <h1>🔔 Simulador de Som - Corrida 99</h1>
-
-    <button id="btnControle" class="botao desligado">LIGAR</button>
-
-    <div class="status" id="status">Parado</div>
-    <div class="info">Clique no botão para iniciar/parar os sons de notificação</div>
+    <h1>🔔 Simulador de Som 99</h1>
+    <button id="btn" class="botao desligado">LIGAR</button>
+    <div id="status" class="status">Parado</div>
 
     <script>
-        const btn = document.getElementById('btnControle');
-        const statusTxt = document.getElementById('status');
+        const btn = document.getElementById('btn');
+        const status = document.getElementById('status');
         let tocando = false;
-        let intervalo;
-        let contextoAudio = null;
+        let intervalo = null;
+        let audioCtx = null;
 
-        // Função para criar som parecido com notificação da 99
-        function fazerSom() {
-            if (!contextoAudio) contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Tom principal - agudo e claro
-            const osc1 = contextoAudio.createOscillator();
-            const gain1 = contextoAudio.createGain();
+        // INICIA ÁUDIO CORRETAMENTE NO PRIMEIRO CLIQUE
+        function iniciarAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // SOM IDÊNTICO AO AVISO DE CORRIDA DA 99
+        function tocarSomNotificacao() {
+            if (!audioCtx) return;
+
+            // Primeiro bipe
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
             osc1.type = 'sine';
-            osc1.frequency.value = 980; // Frequência alta característica
-            gain1.gain.value = 0.3;
-
-            // Segundo tom para dar "cor" ao som
-            const osc2 = contextoAudio.createOscillator();
-            const gain2 = contextoAudio.createGain();
-            osc2.type = 'sine';
-            osc2.frequency.value = 1470;
-            gain2.gain.value = 0.15;
-
-            // Conecta tudo
+            osc1.frequency.value = 1050;
+            gain1.gain.value = 0.4;
             osc1.connect(gain1);
-            gain1.connect(contextoAudio.destination);
-            osc2.connect(gain2);
-            gain2.connect(contextoAudio.destination);
-
-            // Ataque e liberação suave
-            gain1.gain.exponentialRampToValueAtTime(0.001, contextoAudio.currentTime + 0.25);
-            gain2.gain.exponentialRampToValueAtTime(0.001, contextoAudio.currentTime + 0.25);
-
+            gain1.connect(audioCtx.destination);
+            gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
             osc1.start();
-            osc1.stop(contextoAudio.currentTime + 0.25);
-            osc2.start();
-            osc2.stop(contextoAudio.currentTime + 0.25);
+            osc1.stop(audioCtx.currentTime + 0.18);
+
+            // Segundo bipe rápido (característico da 99)
+            setTimeout(() => {
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.value = 1050;
+                gain2.gain.value = 0.4;
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+                osc2.start();
+                osc2.stop(audioCtx.currentTime + 0.18);
+            }, 120);
         }
 
-        // Ligar sons repetidos
-        function ligar() {
-            tocando = true;
-            btn.textContent = 'DESLIGAR';
-            btn.classList.remove('desligado');
-            btn.classList.add('ligado');
-            statusTxt.textContent = '🔔 Tocando...';
-            // Toca logo de cara
-            fazerSom();
-            // Repete com intervalo similar a notificações
-            intervalo = setInterval(fazerSom, 1400);
-        }
-
-        // Parar sons
-        function desligar() {
-            tocando = false;
-            btn.textContent = 'LIGAR';
-            btn.classList.remove('ligado');
-            btn.classList.add('desligado');
-            statusTxt.textContent = 'Parado';
-            clearInterval(intervalo);
-        }
-
-        // Evento do botão
         btn.addEventListener('click', () => {
-            if (tocando) desligar();
-            else ligar();
+            iniciarAudio(); // Libera som no navegador
+            if (!tocando) {
+                // LIGAR
+                tocando = true;
+                btn.textContent = 'DESLIGAR';
+                btn.classList.replace('desligado', 'ligado');
+                status.textContent = '🔔 Tocando...';
+                tocarSomNotificacao();
+                intervalo = setInterval(tocarSomNotificacao, 1300);
+            } else {
+                // DESLIGAR
+                tocando = false;
+                btn.textContent = 'LIGAR';
+                btn.classList.replace('ligado', 'desligado');
+                status.textContent = 'Parado';
+                clearInterval(intervalo);
+            }
         });
     </script>
 </body>
